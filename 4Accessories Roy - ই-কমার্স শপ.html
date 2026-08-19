@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessories Roy - ই-কমার্স শপ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 22s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
+        /* Banner Carousel Styles */
+        .banner-slide {
+            display: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .banner-slide.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- ১. রানিং টেক্সট (Marquee) -->
+    <div class="bg-amber-400 text-slate-900 font-medium py-2 overflow-hidden text-sm shadow-inner">
+        <div class="animate-marquee">
+            🚀 Accessories Roy-তে স্বাগতম! ⚡ ভারতে দ্রুত ডেলিভারি ও ক্যাশ অন ডেলিভারি সুবিধা! 🛍️ সেরা দামে অরিজিনাল এক্সেসরিজ কিনুন!
+        </div>
+    </div>
+
+    <!-- ২. হেডার -->
+    <header class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-emerald-600 tracking-tight">Accessories <span class="text-slate-800">Roy</span></span>
+            </div>
+            
+            <!-- সার্চ বার -->
+            <div class="relative w-full sm:w-80">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    onkeyup="filterProducts()" 
+                    placeholder="প্রোডাক্ট খুঁজুন..." 
+                    class="w-full pl-10 pr-4 py-2 rounded-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                >
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- ৩. ডায়নামিক রানিং স্লাইডার ব্যানার -->
+    <section class="max-w-7xl mx-auto px-4 my-6 w-full">
+        <div class="relative rounded-2xl overflow-hidden shadow-lg border border-slate-100 bg-slate-900 group">
+            
+            <div id="bannerContainer"></div>
+
+            <button onclick="prevSlide()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 z-10">
+                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+            </button>
+            <button onclick="nextSlide()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 z-10">
+                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+            </button>
+
+            <div id="dotsContainer" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+        </div>
+    </section>
+
+    <!-- ৪. ক্যাটাগরি ফিল্টার -->
+    <section class="max-w-7xl mx-auto px-4 mb-6 w-full">
+        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryButtons">
+            <button onclick="selectCategory('All')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-600 text-white shadow-sm" data-category="All">সব প্রোডাক্ট</button>
+            <button onclick="selectCategory('Electronics')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white text-slate-600 hover:bg-slate-100 border border-slate-200" data-category="Electronics">ইলেকট্রনিক্স</button>
+            <button onclick="selectCategory('Gadgets')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white text-slate-600 hover:bg-slate-100 border border-slate-200" data-category="Gadgets">গ্যাজেট</button>
+            <button onclick="selectCategory('Accessories')" class="category-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white text-slate-600 hover:bg-slate-100 border border-slate-200" data-category="Accessories">এক্সেসরিজ</button>
+        </div>
+    </section>
+
+    <!-- ৫. প্রোডাক্ট গ্রিড -->
+    <main class="max-w-7xl mx-auto px-4 pb-16 flex-1 w-full">
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    </main>
+
+    <!-- ৬. ফুটার -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+        <p>© 2026 Accessories Roy. All rights reserved.</p>
+    </footer>
+
+    <!-- জাবাস্ক্রিপ্ট ডেটা এবং লজিক -->
+    <script>
+        const WHATSAPP_NUMBER = "9856419747";
+
+        // --- ব্যানার ডেটা ---
+        const banners = [
+            {
+                badge: "ধামাকা অফার",
+                badgeBg: "bg-amber-500 text-slate-900",
+                title: "উৎসবের বিশেষ ছাড়!",
+                subtitle: "সকল ইলেকট্রনিক্স ও মোবাইল এক্সেসরিজে পান ২০% পর্যন্ত ছাড়।",
+                image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop",
+                link: "https://facebook.com"
+            },
+            {
+                badge: "নতুন কালেকশন",
+                badgeBg: "bg-emerald-500 text-white",
+                title: "প্রিমিয়াম অডিও ডিভাইস",
+                subtitle: "বেস্ট কোয়ালিটি হেডফোন ও ব্লুটুথ স্পিকারের বিশাল সম্ভার।",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop",
+                link: "https://youtube.com"
+            }
+        ];
+
+        // --- প্রোডাক্ট ডেটা (নতুন লিঙ্ক ও গুগল রিভিউর জায়গা যুক্ত করা হয়েছে) ---
+        const products = [
+            {
+                id: "AR-101",
+                name: "প্রিমিয়াম ওয়ারলেস ইয়ারফোন",
+                price: 499,
+                category: "Electronics",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop",
+                productLink: "https://facebook.com",
+                description: "উচ্চমানের সাউন্ড এবং সাশ্রয়ী মূল্য। দৈনন্দিন ব্যবহারের জন্য দারুণ।",
+                googleReviewLink: "https://g.page/r/CcKAmf0kyfwDEAE/review", // 👇 গুগলের রানিং রিভিউ লিঙ্ক
+                facebookLink: "https://facebook.com",
+                youtubeLink: "https://youtube.com",
+                waCatalogueLink: "https://wa.me/c/919856419747", // 👇 হোয়াটসঅ্যাপ ক্যাটালগ লিঙ্ক
+                googleBusinessLink: "https://business.google.com/n/8583771646032083279/searchprofile?hl=bn" // 👇 গুগল বিজনেস প্রোফাইল লিঙ্ক
+            },
+            {
+                id: "AR-102",
+                name: "স্মার্ট ফিটনেস ওয়াচ",
+                price: 1299,
+                category: "Gadgets",
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
+                productLink: "https://youtube.com",
+                description: "হার্ট রেট এবং স্টেপ ট্র্যাকিং সিস্টেম সহ ওয়াটারপ্রুফ স্মার্টওয়াচ।",
+                googleReviewLink: "https://g.page/r/CcKAmf0kyfwDEAE/review",
+                facebookLink: "https://facebook.com",
+                youtubeLink: "",
+                waCatalogueLink: "https://wa.me/c/919856419747",
+                googleBusinessLink: "https://business.google.com/n/8583771646032083279/searchprofile?hl=bn"
+            },
+
+ {
+                id: "AR-101",
+                name: "প্রিমিয়াম ওয়ারলেস ইয়ারফোন",
+                price: 499,
+                category: "Electronics",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop",
+                productLink: "https://facebook.com",
+                description: "উচ্চমানের সাউন্ড এবং সাশ্রয়ী মূল্য। দৈনন্দিন ব্যবহারের জন্য দারুণ।",
+                googleReviewLink: "https://g.page/r/CcKAmf0kyfwDEAE/review", // 👇 গুগলের রানিং রিভিউ লিঙ্ক
+                facebookLink: "https://facebook.com",
+                youtubeLink: "https://youtube.com",
+                waCatalogueLink: "https://wa.me/c/919856419747", // 👇 হোয়াটসঅ্যাপ ক্যাটালগ লিঙ্ক
+                googleBusinessLink: "https://business.google.com/n/8583771646032083279/searchprofile?hl=bn" // 👇 গুগল বিজনেস প্রোফাইল লিঙ্ক
+            },
+            {
+                id: "AR-102",
+                name: "স্মার্ট ফিটনেস ওয়াচ",
+                price: 1299,
+                category: "Gadgets",
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
+                productLink: "https://youtube.com",
+                description: "হার্ট রেট এবং স্টেপ ট্র্যাকিং সিস্টেম সহ ওয়াটারপ্রুফ স্মার্টওয়াচ।",
+                googleReviewLink: "https://g.page/r/CcKAmf0kyfwDEAE/review",
+                facebookLink: "https://facebook.com",
+                youtubeLink: "",
+                waCatalogueLink: "https://wa.me/c/919856419747",
+                googleBusinessLink: "https://business.google.com/n/8583771646032083279/searchprofile?hl=bn"
+            },
+
+ {
+                id: "AR-101",
+                name: "প্রিমিয়াম ওয়ারলেস ইয়ারফোন",
+                price: 499,
+                category: "Electronics",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop",
+                productLink: "https://facebook.com",
+                description: "উচ্চমানের সাউন্ড এবং সাশ্রয়ী মূল্য। দৈনন্দিন ব্যবহারের জন্য দারুণ।",
+                googleReviewLink: "https://g.page/r/CcKAmf0kyfwDEAE/review", // 👇 গুগলের রানিং রিভিউ লিঙ্ক
+                facebookLink: "https://facebook.com",
+                youtubeLink: "https://youtube.com",
+                waCatalogueLink: "https://wa.me/c/919856419747", // 👇 হোয়াটসঅ্যাপ ক্যাটালগ লিঙ্ক
+                googleBusinessLink: "https://business.google.com/n/8583771646032083279/searchprofile?hl=bn" // 👇 গুগল বিজনেস প্রোফাইল লিঙ্ক
+            },
+            {
+                id: "AR-102",
+                name: "স্মার্ট ফিটনেস ওয়াচ",
+                price: 1299,
+                category: "Gadgets",
+                image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=600&auto=format&fit=crop",
+                productLink: "https://youtube.com",
+                description: "হার্ট রেট এবং স্টেপ ট্র্যাকিং সিস্টেম সহ ওয়াটারপ্রুফ স্মার্টওয়াচ।",
+                googleReviewLink: "https://g.page/r/CcKAmf0kyfwDEAE/review",
+                facebookLink: "https://facebook.com",
+                youtubeLink: "",
+                waCatalogueLink: "https://wa.me/c/919856419747",
+                googleBusinessLink: "https://business.google.com/n/8583771646032083279/searchprofile?hl=bn"
+            }
+
+        ];
+
+
+        let selectedCategory = "All";
+        let currentSlide = 0;
+
+        function renderBanners() {
+            const container = document.getElementById('bannerContainer');
+            const dots = document.getElementById('dotsContainer');
+
+            container.innerHTML = banners.map((b, idx) => `
+                <div class="banner-slide ${idx === 0 ? 'active' : ''}">
+                    <a href="${b.link}" target="_blank" class="block relative h-44 sm:h-64 md:h-80 w-full group-hover:scale-[1.01] transition-transform duration-300">
+                        <img src="${b.image}" class="w-full h-full object-cover opacity-60" alt="${b.title}">
+                        <div class="absolute inset-0 p-6 md:p-10 flex flex-col justify-center text-white bg-gradient-to-r from-black/80 via-black/40 to-transparent">
+                            <span class="${b.badgeBg} font-bold text-xs px-3 py-1 rounded-full w-max mb-2">${b.badge}</span>
+                            <h2 class="text-2xl sm:text-4xl font-extrabold mb-1">${b.title}</h2>
+                            <p class="text-slate-200 text-xs sm:text-base max-w-md">${b.subtitle}</p>
+                        </div>
+                    </a>
+                </div>
+            `).join('');
+
+            dots.innerHTML = banners.map((_, idx) => `
+                <button onclick="goToSlide(${idx})" class="w-2 h-2 rounded-full transition-all ${idx === 0 ? 'bg-white w-6' : 'bg-white/50'}"></button>
+            `).join('');
+        }
+
+        function updateSlider() {
+            const slides = document.querySelectorAll('.banner-slide');
+            const dots = document.getElementById('dotsContainer').children;
+
+            slides.forEach((slide, idx) => {
+                slide.classList.toggle('active', idx === currentSlide);
+            });
+
+            Array.from(dots).forEach((dot, idx) => {
+                dot.className = idx === currentSlide ? "w-6 h-2 rounded-full bg-white transition-all" : "w-2 h-2 rounded-full bg-white/50 transition-all";
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % banners.length;
+            updateSlider();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + banners.length) % banners.length;
+            updateSlider();
+        }
+
+        function goToSlide(idx) {
+            currentSlide = idx;
+            updateSlider();
+        }
+
+        setInterval(nextSlide, 3500);
+
+        // --- প্রোডাক্ট রেন্ডার করার ফাংশন ---
+        function renderProducts() {
+            const grid = document.getElementById("productGrid");
+            const searchVal = document.getElementById("searchInput").value.toLowerCase();
+            
+            const filtered = products.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchVal);
+                const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">কোন প্রোডাক্ট পাওয়া যায়নি!</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-slate-100 overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <!-- ছবি লিংক -->
+                        <a href="${p.productLink || '#'}" target="_blank" class="block relative h-48 w-full bg-slate-100 overflow-hidden group">
+                            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="bg-white/90 text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow">বিস্তারিত দেখুন 🔗</span>
+                            </div>
+                        </a>
+                        
+                        <div class="p-4">
+                            <h3 class="font-semibold text-slate-800 text-base line-clamp-1">${p.name}</h3>
+                            <p class="text-slate-500 text-xs mt-1 line-clamp-2">${p.description}</p>
+                            
+                            <!-- গুগলের রানিং রিভিউ বাটন (সামান্য উপরে) -->
+                            ${p.googleReviewLink ? `
+                                <div class="mt-3 pt-2 border-t border-slate-100">
+                                    <a href="${p.googleReviewLink}" target="_blank" class="inline-flex items-center gap-1.5 text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full border border-amber-200 transition-colors">
+                                        <span class="font-bold text-amber-600">4.9 ★</span>
+                                        <span>গুগল রিভিউ দিন</span>
+                                        <i data-lucide="external-link" class="w-3 h-3 text-amber-600"></i>
+                                    </a>
+                                </div>
+                            ` : ''}
+
+                            <!-- সোশ্যাল ও প্ল্যাটফর্ম লিংকের অপশন -->
+                            <div class="flex flex-wrap gap-x-3 gap-y-1.5 mt-2.5 text-xs">
+                                ${p.facebookLink ? `<a href="${p.facebookLink}" target="_blank" class="flex items-center gap-1 text-blue-600 hover:underline"><i data-lucide="facebook" class="w-3.5 h-3.5"></i> ফেসবুক</a>` : ''}
+                                ${p.youtubeLink ? `<a href="${p.youtubeLink}" target="_blank" class="flex items-center gap-1 text-red-600 hover:underline"><i data-lucide="youtube" class="w-3.5 h-3.5"></i> ইউটিউব</a>` : ''}
+                                ${p.waCatalogueLink ? `<a href="${p.waCatalogueLink}" target="_blank" class="flex items-center gap-1 text-emerald-600 hover:underline"><i data-lucide="store" class="w-3.5 h-3.5"></i> ক্যাটালগ</a>` : ''}
+                                ${p.googleBusinessLink ? `<a href="${p.googleBusinessLink}" target="_blank" class="flex items-center gap-1 text-slate-700 hover:underline"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> গুগল বিজনেস</a>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 pt-0 mt-auto">
+                        <div class="flex items-center justify-between my-2">
+                            <span class="text-xl font-bold text-slate-900">₹${p.price.toLocaleString('en-IN')}</span>
+                            <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">INR</span>
+                        </div>
+                        <button onclick="buyNow('${p.name}', ${p.price}, '${p.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm text-sm">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i> Buy Now (WhatsApp)
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
+        function selectCategory(cat) {
+            selectedCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.className = btn.dataset.category === cat 
+                    ? "category-btn px-4 py-1.5 rounded-full text-sm font-medium bg-emerald-600 text-white shadow-sm"
+                    : "category-btn px-4 py-1.5 rounded-full text-sm font-medium bg-white text-slate-600 hover:bg-slate-100 border border-slate-200";
+            });
+            renderProducts();
+        }
+
+        function buyNow(name, price, id) {
+            const message = `হ্যালো! আমি এই প্রোডাক্টটি কিনতে চাই:%0A%0A*প্রোডাক্ট:* ${name}%0A*মূল্য:* ₹${price}%0A*আইডি:* ${id}`;
+            const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
+            window.open(url, '_blank');
+        }
+
+        renderBanners();
+        renderProducts();
+    </script>
+</body>
+</html>
